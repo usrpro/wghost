@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+
+package wghost;
+
+import "google/protobuf/timestamp.proto";
+
+service Wg {
+    rpc AddPeer (PeerConfig) returns (PeerCount) {}
+    rpc SetPeers (PeerConfigList) returns (PeerCount) {}
+    rpc GetPeer (PeerQuery) returns (Peer) {}
+    rpc ListPeers (PeerListQuery) returns (PeerList) {}
+}
+
+message PeerConfig {
+    // PublicKey is the public key of a peer, computed from its private key.
+    string PublicKey = 1;
+
+    // PresharedKey is an optional preshared key which may be used as an
+    // additional layer of security for peer communications.
+    string PresharedKey = 2;
+
+    // AllowedIPs specifies which IPv4 and IPv6 addresses this peer is allowed
+    // to communicate on.
+    //
+    // 0.0.0.0/0 indicates that all IPv4 addresses are allowed, and ::/0
+    // indicates that all IPv6 addresses are allowed.
+    repeated string AllowedIPs = 3;
+}
+
+message PeerConfigList {
+    // ReplacePeers specifies if the Peers in this configuration should replace
+    // the existing peer list, instead of appending them to the existing list.
+    bool ReplacePeers = 1;
+
+    // Peers specifies a list of peer configurations to apply to a device.
+    repeated PeerConfig Peers = 2;
+}
+
+message PeerQuery {
+    // PublicKey is the public key of a peer, computed from its private key.
+    string PublicKey = 1;
+}
+
+message Peer {
+    // PublicKey is the public key of a peer, computed from its private key.
+    string PublicKey = 1;
+
+    // PresharedKey is an optional preshared key which may be used as an
+    // additional layer of security for peer communications.
+    string PresharedKey = 2;
+
+    // LastHandshakeTime indicates the most recent time a handshake was performed
+    // with this peer.
+    //
+    // A zero-value time.Time indicates that no handshake has taken place with
+    // this peer.
+    google.protobuf.Timestamp LastHandshakeTime = 3;
+
+    // ReceiveBytes indicates the number of bytes received from this peer.
+    int64 ReceiveBytes = 4;
+
+    // TransmitBytes indicates the number of bytes transmitted to this peer.
+    int64 TransmitBytes = 5;
+
+    // AllowedIPs specifies which IPv4 and IPv6 addresses this peer is allowed
+    // to communicate on.
+    //
+    // 0.0.0.0/0 indicates that all IPv4 addresses are allowed, and ::/0
+    // indicates that all IPv6 addresses are allowed.
+    repeated string AllowedIPs = 6;
+
+    // ProtocolVersion specifies which version of the WireGuard protocol is used
+    // for this Peer.
+    //
+    // A value of 0 indicates that the most recent protocol version will be used.
+    int32 ProtocolVersion = 7;
+}
+
+message PeerCount {
+    int32 Count = 1;
+}
+
+message PeerListQuery {}
+
+message PeerList {
+    repeated Peer Peers = 1;
+}
