@@ -11,6 +11,45 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
+func TestEndPointToMsg(t *testing.T) {
+	tests := []struct {
+		name string
+		ep   *net.UDPAddr
+		want *wghost.Endpoint
+	}{
+		{
+			"Nil",
+			nil,
+			nil,
+		},
+		{
+			"Nil IP",
+			&net.UDPAddr{},
+			nil,
+		},
+		{
+			"Success",
+			&net.UDPAddr{
+				IP:   net.ParseIP("fe80::dead:beef:cafe"),
+				Port: 52800,
+				Zone: "11",
+			},
+			&wghost.Endpoint{
+				IP:   "fe80::dead:beef:cafe",
+				Port: 52800,
+				Zone: "11",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := EndPointToMsg(tt.ep); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("EndPointToMsg() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestPeerToMsg(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -21,8 +60,13 @@ func TestPeerToMsg(t *testing.T) {
 		{
 			"Success",
 			&wgtypes.Peer{
-				PublicKey:         wgtypes.Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-				PresharedKey:      wgtypes.Key{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+				PublicKey:    wgtypes.Key{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+				PresharedKey: wgtypes.Key{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+				Endpoint: &net.UDPAddr{
+					IP:   net.ParseIP("fe80::dead:beef:cafe"),
+					Port: 52800,
+					Zone: "11",
+				},
 				LastHandshakeTime: time.Unix(333, 444),
 				ReceiveBytes:      12000,
 				TransmitBytes:     34000,
@@ -45,6 +89,11 @@ func TestPeerToMsg(t *testing.T) {
 			&wghost.Peer{
 				PublicKey:    "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=",
 				PresharedKey: "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=",
+				Endpoint: &wghost.Endpoint{
+					IP:   "fe80::dead:beef:cafe",
+					Port: 52800,
+					Zone: "11",
+				},
 				LastHandshakeTime: &timestamp.Timestamp{
 					Seconds: 333,
 					Nanos:   444,

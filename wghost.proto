@@ -6,8 +6,8 @@ package wghost;
 import "google/protobuf/timestamp.proto";
 
 service Wg {
-    rpc AddPeer (PeerConfig) returns (PeerCount) {}
-    rpc SetPeers (PeerConfigList) returns (PeerCount) {}
+    rpc AddPeer (PeerConfig) returns (ConfigSuccess) {}
+    rpc SetPeers (PeerConfigList) returns (ConfigSuccess) {}
     rpc GetPeer (PeerQuery) returns (Peer) {}
     rpc ListPeers (PeerListQuery) returns (PeerList) {}
 }
@@ -42,6 +42,12 @@ message PeerQuery {
     string PublicKey = 1;
 }
 
+message Endpoint {
+    string IP = 1;
+    int32 Port = 2;
+    string Zone = 3;
+}
+
 message Peer {
     // PublicKey is the public key of a peer, computed from its private key.
     string PublicKey = 1;
@@ -50,36 +56,38 @@ message Peer {
     // additional layer of security for peer communications.
     string PresharedKey = 2;
 
+    // Endpoint is the most recent source address used for communication by
+    // this Peer.
+    Endpoint Endpoint = 3;
+
     // LastHandshakeTime indicates the most recent time a handshake was performed
     // with this peer.
     //
     // A zero-value time.Time indicates that no handshake has taken place with
     // this peer.
-    google.protobuf.Timestamp LastHandshakeTime = 3;
+    google.protobuf.Timestamp LastHandshakeTime = 4;
 
     // ReceiveBytes indicates the number of bytes received from this peer.
-    int64 ReceiveBytes = 4;
+    int64 ReceiveBytes = 5;
 
     // TransmitBytes indicates the number of bytes transmitted to this peer.
-    int64 TransmitBytes = 5;
+    int64 TransmitBytes = 6;
 
     // AllowedIPs specifies which IPv4 and IPv6 addresses this peer is allowed
     // to communicate on.
     //
     // 0.0.0.0/0 indicates that all IPv4 addresses are allowed, and ::/0
     // indicates that all IPv6 addresses are allowed.
-    repeated string AllowedIPs = 6;
+    repeated string AllowedIPs = 7;
 
     // ProtocolVersion specifies which version of the WireGuard protocol is used
     // for this Peer.
     //
     // A value of 0 indicates that the most recent protocol version will be used.
-    int32 ProtocolVersion = 7;
+    int32 ProtocolVersion = 8;
 }
 
-message PeerCount {
-    int32 Count = 1;
-}
+message ConfigSuccess {}
 
 message PeerListQuery {}
 
