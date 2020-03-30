@@ -3,7 +3,7 @@ package implement
 import (
 	"context"
 	"errors"
-	stdlog "log"
+	"os"
 	"reflect"
 	"testing"
 
@@ -44,7 +44,7 @@ func TestDeviceError_Error(t *testing.T) {
 		dev: "wg-test",
 		err: smt,
 	}
-	want := "Device wg-test config: something"
+	want := "Device \"wg-test\": something"
 
 	if got := e.Error(); got != want {
 		t.Errorf("DeviceError.Error() = %v, want %v", got, want)
@@ -60,7 +60,8 @@ var errorServer *wgServer
 func init() {
 	s, err := NewWgServer("wg-not-exist")
 	if err != nil {
-		stdlog.Fatal(err)
+		log15.Crit("Test init", "err", err)
+		os.Exit(1)
 	}
 	errorServer = s.(*wgServer)
 

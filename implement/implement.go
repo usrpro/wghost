@@ -43,7 +43,7 @@ type DeviceError struct {
 }
 
 func (e *DeviceError) Error() string {
-	return fmt.Sprintf("Device %s config: %s", e.dev, e.err)
+	return fmt.Sprintf("Device %q: %s", e.dev, e.err)
 }
 
 func (e *DeviceError) Unwrap() error {
