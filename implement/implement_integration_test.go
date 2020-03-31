@@ -13,7 +13,7 @@ import (
 var testServer *wgServer
 
 func init() {
-	s, err := NewWgServer("wgtest")
+	s, err := New("wgtest")
 	if err != nil {
 		log15.Crit("Test init", "err", err)
 		os.Exit(1)

@@ -12,7 +12,7 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
-func TestNewWgServer(t *testing.T) {
+func TestNew(t *testing.T) {
 	tests := []struct {
 		name    string
 		device  string
@@ -26,7 +26,7 @@ func TestNewWgServer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewWgServer(tt.device)
+			got, err := New(tt.device)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewWgServer() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -58,7 +58,7 @@ func TestDeviceError_Error(t *testing.T) {
 var errorServer *wgServer
 
 func init() {
-	s, err := NewWgServer("wg-not-exist")
+	s, err := New("wg-not-exist")
 	if err != nil {
 		log15.Crit("Test init", "err", err)
 		os.Exit(1)
@@ -68,7 +68,7 @@ func init() {
 	log15.LvlFilterHandler(log15.LvlDebug, log15.StdoutHandler)
 }
 
-func Test_wgServer_configureDevice(t *testing.T) {
+func Test_wgServer_ConfigureDevice(t *testing.T) {
 	priv, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
 		t.Fatal(err)
@@ -89,14 +89,14 @@ func Test_wgServer_configureDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := errorServer.configureDevice(tt.cfg); (err != nil) != tt.wantErr {
+			if err := errorServer.ConfigureDevice(tt.cfg); (err != nil) != tt.wantErr {
 				t.Errorf("wgServer.configureDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func Test_wgServer_readDevice(t *testing.T) {
+func Test_wgServer_Device(t *testing.T) {
 	tests := []struct {
 		name    string
 		wantErr bool
@@ -108,7 +108,7 @@ func Test_wgServer_readDevice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := errorServer.readDevice(); (err != nil) != tt.wantErr {
+			if _, err := errorServer.Device(); (err != nil) != tt.wantErr {
 				t.Errorf("wgServer.readDevice() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

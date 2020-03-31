@@ -16,6 +16,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// WgDeviceServer is a WgServer with additional
+// Device methods for direct access.
+type WgDeviceServer interface {
+	wghost.WgServer
+	ConfigureDevice(cfg wgtypes.Config) error
+	Device() (*wgtypes.Device, error)
+}
+
 type wgServer struct {
 	wghost.UnimplementedWgServer
 	device string
@@ -23,8 +31,9 @@ type wgServer struct {
 	mtx    sync.RWMutex // protects client
 }
 
-// NewWgServer returns a WgServer implementation.
-func NewWgServer(device string) (wghost.WgServer, error) {
+// New returns a WgDeviceServer implementation,
+// with an initialized wgctrl.Client.
+func New(device string) (WgDeviceServer, error) {
 	client, err := wgctrl.New()
 	if err != nil {
 		return nil, fmt.Errorf("NewWgServer: %w", err)
@@ -50,7 +59,7 @@ func (e *DeviceError) Unwrap() error {
 	return e.err
 }
 
-func (s *wgServer) configureDevice(cfg wgtypes.Config) error {
+func (s *wgServer) ConfigureDevice(cfg wgtypes.Config) error {
 	s.mtx.Lock()
 	err := s.client.ConfigureDevice(s.device, cfg)
 	s.mtx.Unlock()
@@ -62,7 +71,7 @@ func (s *wgServer) configureDevice(cfg wgtypes.Config) error {
 	return nil
 }
 
-func (s *wgServer) readDevice() (*wgtypes.Device, error) {
+func (s *wgServer) Device() (*wgtypes.Device, error) {
 	s.mtx.RLock()
 	dev, err := s.client.Device(s.device)
 	s.mtx.RUnlock()
@@ -84,7 +93,7 @@ func (s *wgServer) AddPeer(ctx context.Context, pc *wghost.PeerConfig) (*wghost.
 	cfg := wgtypes.Config{
 		Peers: []wgtypes.PeerConfig{wpc},
 	}
-	if err = s.configureDevice(cfg); err != nil {
+	if err = s.ConfigureDevice(cfg); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +122,7 @@ func (s *wgServer) SetPeers(ctx context.Context, pcl *wghost.PeerConfigList) (*w
 		ReplacePeers: pcl.GetReplacePeers(),
 		Peers:        wpcl,
 	}
-	if err = s.configureDevice(cfg); err != nil {
+	if err = s.ConfigureDevice(cfg); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +146,7 @@ func (s *wgServer) GetPeer(ctx context.Context, pq *wghost.PeerQuery) (*wghost.P
 		return nil, err
 	}
 
-	dev, err := s.readDevice()
+	dev, err := s.Device()
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +155,7 @@ func (s *wgServer) GetPeer(ctx context.Context, pq *wghost.PeerQuery) (*wghost.P
 }
 
 func (s *wgServer) ListPeers(ctx context.Context, plq *wghost.PeerListQuery) (*wghost.PeerList, error) {
-	dev, err := s.readDevice()
+	dev, err := s.Device()
 	if err != nil {
 		return nil, err
 	}
