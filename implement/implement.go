@@ -22,6 +22,7 @@ type WgDeviceServer interface {
 	wghost.WgServer
 	ConfigureDevice(cfg wgtypes.Config) error
 	Device() (*wgtypes.Device, error)
+	Logger() log15.Logger
 }
 
 type wgServer struct {
@@ -29,20 +30,24 @@ type wgServer struct {
 	device string
 	client *wgctrl.Client
 	mtx    sync.RWMutex // protects client
+
+	log log15.Logger
 }
 
 // New returns a WgDeviceServer implementation,
 // with an initialized wgctrl.Client.
-func New(device string) (WgDeviceServer, error) {
+// New panic if the wgctrl.Client cannot be opened.
+func New(device string, logger log15.Logger) WgDeviceServer {
 	client, err := wgctrl.New()
 	if err != nil {
-		return nil, fmt.Errorf("NewWgServer: %w", err)
+		panic(fmt.Errorf("NewWgServer: %w", err))
 	}
 
 	return &wgServer{
 		device: device,
 		client: client,
-	}, nil
+		log:    logger.New("dev", device),
+	}
 }
 
 // DeviceError signals errors when accessing the WireGuard device
@@ -57,6 +62,10 @@ func (e *DeviceError) Error() string {
 
 func (e *DeviceError) Unwrap() error {
 	return e.err
+}
+
+func (s *wgServer) Logger() log15.Logger {
+	return s.log
 }
 
 func (s *wgServer) ConfigureDevice(cfg wgtypes.Config) error {

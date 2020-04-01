@@ -1,0 +1,14 @@
+{
+  "address": "127.0.0.1",
+  "port": 8989,
+  "device": "wgtest",
+  "loglevel": "info",
+  "tls": null,
+  "authserver": {
+    "Host": "127.0.0.1",
+    "Port": 8765
+  },
+  "audiences": [
+    "tester"
+  ]
+}

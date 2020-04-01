@@ -3,7 +3,6 @@ package implement
 import (
 	"context"
 	"errors"
-	"os"
 	"reflect"
 	"testing"
 
@@ -14,23 +13,17 @@ import (
 
 func TestNew(t *testing.T) {
 	tests := []struct {
-		name    string
-		device  string
-		wantErr bool
+		name   string
+		device string
 	}{
 		{
 			"Success",
 			"wg-test",
-			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := New(tt.device)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("NewWgServer() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := New(tt.device, log15.Root())
 			if got == nil || got.(*wgServer).device != tt.device {
 				t.Errorf("NewWgServer() = %v, want %v", got, tt.device)
 			}
@@ -58,14 +51,11 @@ func TestDeviceError_Error(t *testing.T) {
 var errorServer *wgServer
 
 func init() {
-	s, err := New("wg-not-exist")
-	if err != nil {
-		log15.Crit("Test init", "err", err)
-		os.Exit(1)
-	}
-	errorServer = s.(*wgServer)
+	errorServer = New("wg-not-exist", log15.Root()).(*wgServer)
 
-	log15.LvlFilterHandler(log15.LvlDebug, log15.StdoutHandler)
+	log15.Root().SetHandler(
+		log15.LvlFilterHandler(log15.LvlDebug, log15.StdoutHandler),
+	)
 }
 
 func Test_wgServer_ConfigureDevice(t *testing.T) {

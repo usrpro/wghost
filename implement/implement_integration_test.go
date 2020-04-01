@@ -2,7 +2,6 @@ package implement
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"testing"
 
@@ -13,12 +12,7 @@ import (
 var testServer *wgServer
 
 func init() {
-	s, err := New("wgtest")
-	if err != nil {
-		log15.Crit("Test init", "err", err)
-		os.Exit(1)
-	}
-	testServer = s.(*wgServer)
+	testServer = New("wgtest", log15.Root()).(*wgServer)
 }
 
 func TestPeer(t *testing.T) {
